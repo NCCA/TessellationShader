@@ -4,7 +4,6 @@
 #include "NGLScene.h"
 #include <ngl/Camera.h>
 #include <ngl/Light.h>
-#include <ngl/TransformStack.h>
 #include <ngl/Material.h>
 #include <ngl/NGLInit.h>
 #include <ngl/VAOPrimitives.h>
