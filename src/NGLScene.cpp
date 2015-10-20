@@ -82,8 +82,8 @@ void NGLScene::initializeGL()
 
   shader->createShaderProgram("Tess");
   // now we are going to create empty shaders for Frag and Vert
-  shader->attachShader("TessVertex",ngl::VERTEX);
-  shader->attachShader("TessFragment",ngl::FRAGMENT);
+  shader->attachShader("TessVertex",ngl::ShaderType::VERTEX);
+  shader->attachShader("TessFragment",ngl::ShaderType::FRAGMENT);
   shader->attachShader("TessGeom",ngl::GEOMETRY);
   shader->attachShader("TessControl",ngl::TESSCONTROL);
   shader->attachShader("TessEval",ngl::TESSEVAL);
