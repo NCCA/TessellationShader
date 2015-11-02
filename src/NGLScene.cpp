@@ -37,15 +37,12 @@ NGLScene::~NGLScene()
 }
 
 
-void NGLScene::resizeGL(int _w, int _h)
+void NGLScene::resizeGL(QResizeEvent *_event)
 {
-  // set the viewport for openGL we need to take into account retina display
-  // etc by using the pixel ratio as a multiplyer
-  glViewport(0,0,_w*devicePixelRatio(),_h*devicePixelRatio());
+  m_width=_event->size().width()*devicePixelRatio();
+  m_height=_event->size().height()*devicePixelRatio();
   // now set the camera size values as the screen size has changed
-  m_cam->setShape(45.0f,(float)_w/_h,0.05f,350.0f);
-  m_text->setScreenSize(_w,_h);
-  update();
+  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
 }
 
 
@@ -54,9 +51,9 @@ void NGLScene::initializeGL()
   ngl::NGLInit::instance();
   std::cerr << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
 
-  m_text=new ngl::Text(QFont("Arial",16));
+  m_text.reset( new ngl::Text(QFont("Arial",16)));
   m_text->setColour(1,1,1);
-  m_text->setScreenSize(this->size().width(),this->size().height());
+  m_text->setScreenSize(width(),height());
 
   glClearColor(0.4f, 0.4f, 0.4f, 1.0f);			   // Grey Background
   // enable depth testing for drawing
@@ -75,18 +72,18 @@ void NGLScene::initializeGL()
   ngl::Vec3 to(0,0,0);
   ngl::Vec3 up(0,1,0);
   // now load to our new camera
-  m_cam= new ngl::Camera(from,to,up);
+  m_cam.set(from,to,up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
-  m_cam->setShape(50,(float)720.0/576.0,0.05,350);
+  m_cam.setShape(50,(float)720.0/576.0,0.05,350);
 
   shader->createShaderProgram("Tess");
   // now we are going to create empty shaders for Frag and Vert
   shader->attachShader("TessVertex",ngl::ShaderType::VERTEX);
   shader->attachShader("TessFragment",ngl::ShaderType::FRAGMENT);
-  shader->attachShader("TessGeom",ngl::GEOMETRY);
-  shader->attachShader("TessControl",ngl::TESSCONTROL);
-  shader->attachShader("TessEval",ngl::TESSEVAL);
+  shader->attachShader("TessGeom",ngl::ShaderType::GEOMETRY);
+  shader->attachShader("TessControl",ngl::ShaderType::TESSCONTROL);
+  shader->attachShader("TessEval",ngl::ShaderType::TESSEVAL);
   // attach the source
   shader->loadShaderSource("TessVertex","shaders/tessvert.glsl");
   shader->loadShaderSource("TessFragment","shaders/tessfrag.glsl");
@@ -119,9 +116,6 @@ void NGLScene::initializeGL()
   createIcosahedron();
   m_innerLevel=1.0;
   m_outerLevel=1.0;
-  // as re-size is not explicitly called we need to do this.
-  glViewport(0,0,width(),height());
-
 }
 
 
@@ -134,8 +128,8 @@ void NGLScene::loadMatricesToShader()
   ngl::Mat3 normalMatrix;
   ngl::Mat4 M;
   M=m_transform.getMatrix()*m_mouseGlobalTX;
-  MV=  M*m_cam->getViewMatrix();
-  MVP= M*m_cam->getVPMatrix();
+  MV=  M*m_cam.getViewMatrix();
+  MVP= M*m_cam.getVPMatrix();
   normalMatrix=MV;
   normalMatrix.inverse();
   shader->setUniform("MVP",MVP);
@@ -148,12 +142,11 @@ void NGLScene::paintGL()
 {
   // clear the screen and depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+  glViewport(0,0,m_width,m_height);
   // grab an instance of the shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   (*shader)["Tess"]->use();
 
-  ngl::Transformation trans;
   ngl::Mat4 rotX;
   ngl::Mat4 rotY;
   // create the rotation matrices
@@ -221,7 +214,7 @@ void NGLScene::createIcosahedron()
          0.000f,  0.000f, -1.000f };
 
     int IndexCount = sizeof(Faces) / sizeof(Faces[0]);
-    m_vao = ngl::VertexArrayObject::createVOA(GL_PATCHES) ;
+    m_vao.reset( ngl::VertexArrayObject::createVOA(GL_PATCHES) );
     m_vao->bind();
     m_vao->setIndexedData(sizeof(Verts),Verts[0],sizeof(Faces),&Faces[0],GL_UNSIGNED_BYTE,GL_STATIC_DRAW);
     m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
