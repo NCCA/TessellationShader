@@ -1,11 +1,6 @@
 #version 400
 out vec4 FragColour;
-/*
-void main()
-{
-	FragColour=vec4(1.0,0.0,0.0,1.0);
-}
-*/
+
 
 out vec4 FragColor;
 in vec3 gFacetNormal;

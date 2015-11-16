@@ -1,20 +1,4 @@
 #version 400
-/*
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
-layout(triangles, invocations = 3) in;
-
-
-void main() {
-	for(int i = 0; i < gl_in.length(); i++)
-	{
-		gl_Position = gl_in[i].gl_Position;
-		EmitVertex();
-	}
-	EndPrimitive();
-}
-*/
-
 
 uniform mat4 Modelview;
 uniform mat3 NormalMatrix;

@@ -7,5 +7,4 @@ out vec3 vPosition;
 void main()
 {
 		vPosition = inVert;
-	 // gl_Position=MVP*vec4(inVert,1.0);
 }
