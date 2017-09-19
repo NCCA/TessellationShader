@@ -6,18 +6,19 @@
 #include <ngl/Light.h>
 #include <ngl/Material.h>
 #include <ngl/NGLInit.h>
-#include <ngl/VAOPrimitives.h>
+#include <ngl/VAOFactory.h>
+#include <ngl/SimpleIndexVAO.h>
 #include <ngl/ShaderLib.h>
 #include <QFont>
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for x/y translation with mouse movement
 //----------------------------------------------------------------------------------------------------------------------
-const static float INCREMENT=0.01;
+const static float INCREMENT=0.01f;
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for the wheel zoom
 //----------------------------------------------------------------------------------------------------------------------
-const static float ZOOM=0.1;
+const static float ZOOM=0.1f;
 
 NGLScene::NGLScene()
 {
@@ -33,7 +34,6 @@ NGLScene::NGLScene()
 NGLScene::~NGLScene()
 {
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
-  m_vao->removeVOA();
 }
 
 
@@ -220,9 +220,9 @@ void NGLScene::createIcosahedron()
          0.000f,  0.000f, -1.000f };
 
     int IndexCount = sizeof(Faces) / sizeof(Faces[0]);
-    m_vao.reset( ngl::VertexArrayObject::createVOA(GL_PATCHES) );
+    m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleIndexVAO, GL_PATCHES) );
     m_vao->bind();
-    m_vao->setIndexedData(sizeof(Verts),Verts[0],sizeof(Faces),&Faces[0],GL_UNSIGNED_BYTE,GL_STATIC_DRAW);
+    m_vao->setData(ngl::SimpleIndexVAO::VertexData(  sizeof(Verts),Verts[0],sizeof(Faces),&Faces[0],GL_UNSIGNED_BYTE,GL_STATIC_DRAW));
     m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
     m_vao->setNumIndices(IndexCount);
 

@@ -1,8 +1,9 @@
-#ifndef NGLSCENE_H__
-#define NGLSCENE_H__
+#ifndef NGLSCENE_H_
+#define NGLSCENE_H_
 #include <ngl/Camera.h>
 #include <ngl/Colour.h>
 #include <ngl/Light.h>
+#include <ngl/AbstractVAO.h>
 #include <ngl/Transformation.h>
 #include <ngl/Text.h>
 #include <QOpenGLWindow>
@@ -148,7 +149,7 @@ private:
     void wheelEvent( QWheelEvent *_event);
 
     void createIcosahedron();
-    std::unique_ptr <ngl::VertexArrayObject> m_vao;
+    std::unique_ptr <ngl::AbstractVAO> m_vao;
     void updateInnerTess(float _v);
     void updateOuterTess(float _v);
     inline void reset(){ m_innerLevel=1.0; m_outerLevel=1.0;}
