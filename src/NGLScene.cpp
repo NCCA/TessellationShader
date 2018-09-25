@@ -2,9 +2,6 @@
 #include <QGuiApplication>
 
 #include "NGLScene.h"
-#include <ngl/Camera.h>
-#include <ngl/Light.h>
-#include <ngl/Material.h>
 #include <ngl/NGLInit.h>
 #include <ngl/VAOFactory.h>
 #include <ngl/SimpleIndexVAO.h>
@@ -37,17 +34,11 @@ NGLScene::~NGLScene()
 }
 
 
-void NGLScene::resizeGL(QResizeEvent *_event)
-{
-  m_width=_event->size().width()*devicePixelRatio();
-  m_height=_event->size().height()*devicePixelRatio();
-  // now set the camera size values as the screen size has changed
-  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
-}
+
 
 void NGLScene::resizeGL(int _w , int _h)
 {
-  m_cam.setShape(45.0f,(float)_w/_h,0.05f,350.0f);
+  m_project=ngl::perspective(45.0f,(float)width()/height(),0.05f,350.0f);
   m_width=_w*devicePixelRatio();
   m_height=_h*devicePixelRatio();
 }
@@ -78,10 +69,10 @@ void NGLScene::initializeGL()
   ngl::Vec3 to(0,0,0);
   ngl::Vec3 up(0,1,0);
   // now load to our new camera
-  m_cam.set(from,to,up);
+  m_view=ngl::lookAt(from,to,up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
-  m_cam.setShape(50,(float)720.0/576.0,0.05,350);
+ m_project=ngl::perspective(50,720.0f/576.0f,0.05f,350);
 
   shader->createShaderProgram("Tess");
   // now we are going to create empty shaders for Frag and Vert
@@ -134,8 +125,8 @@ void NGLScene::loadMatricesToShader()
   ngl::Mat3 normalMatrix;
   ngl::Mat4 M;
   M=m_mouseGlobalTX*m_transform.getMatrix();
-  MV=  m_cam.getViewMatrix()*M;
-  MVP= m_cam.getVPMatrix()*M;
+  MV=  m_view*M;
+  MVP= m_project*MV;
   normalMatrix=MV;
   normalMatrix.inverse().transpose();
   shader->setUniform("MVP",MVP);
@@ -219,33 +210,14 @@ void NGLScene::createIcosahedron()
          0.724f, -0.526f, -0.447f,
          0.000f,  0.000f, -1.000f };
 
-    int IndexCount = sizeof(Faces) / sizeof(Faces[0]);
-    m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleIndexVAO, GL_PATCHES) );
+    auto IndexCount = sizeof(Faces) / sizeof(Faces[0]);
+    m_vao=ngl::VAOFactory::createVAO(ngl::simpleIndexVAO, GL_PATCHES);
     m_vao->bind();
     m_vao->setData(ngl::SimpleIndexVAO::VertexData(  sizeof(Verts),Verts[0],sizeof(Faces),&Faces[0],GL_UNSIGNED_BYTE,GL_STATIC_DRAW));
     m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
     m_vao->setNumIndices(IndexCount);
 
     m_vao->unbind();
-    //    // Create the VAO:
-//    GLuint vao;
-//    glGenVertexArrays(1, &vao);
-//    glBindVertexArray(vao);
-
-//    // Create the VBO for positions:
-//    GLuint positions;
-//    GLsizei stride = 3 * sizeof(float);
-//    glGenBuffers(1, &positions);
-//    glBindBuffer(GL_ARRAY_BUFFER, positions);
-//    glBufferData(GL_ARRAY_BUFFER, sizeof(Verts), Verts, GL_STATIC_DRAW);
-//    glEnableVertexAttribArray(PositionSlot);
-//    glVertexAttribPointer(PositionSlot, 3, GL_FLOAT, GL_FALSE, stride, 0);
-
-//    // Create the VBO for indices:
-//    GLuint indices;
-//    glGenBuffers(1, &indices);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
-//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Faces), Faces, GL_STATIC_DRAW);
 }
 
 
