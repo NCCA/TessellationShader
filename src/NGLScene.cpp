@@ -45,23 +45,16 @@ void NGLScene::resizeGL(int _w , int _h)
 
 void NGLScene::initializeGL()
 {
-  ngl::NGLInit::instance();
+  ngl::NGLInit::initialize();
   std::cerr << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
 
-  m_text.reset( new ngl::Text(QFont("Arial",16)));
+  m_text=std::make_unique<ngl::Text>("fonts/Arial.ttf",16);
   m_text->setColour(1,1,1);
   m_text->setScreenSize(width(),height());
 
   glClearColor(0.4f, 0.4f, 0.4f, 1.0f);			   // Grey Background
   // enable depth testing for drawing
   glEnable(GL_DEPTH_TEST);
-  // we need to initialise the NGL lib, under windows and linux we also need to
-  // initialise GLEW, under windows this needs to be done in the app as well
-  // as the lib hence the WIN32 define
-    // now to load the shader and set the values
-  // grab an instance of shader manager
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
   // Now we will create a basic Camera from the graphics library
   // This is a static camera so it only needs to be set once
   // First create Values for the camera position
@@ -72,43 +65,43 @@ void NGLScene::initializeGL()
   m_view=ngl::lookAt(from,to,up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
- m_project=ngl::perspective(50,720.0f/576.0f,0.05f,350);
+  m_project=ngl::perspective(50,720.0f/576.0f,0.05f,350);
 
-  shader->createShaderProgram("Tess");
+  ngl::ShaderLib::createShaderProgram("Tess");
   // now we are going to create empty shaders for Frag and Vert
-  shader->attachShader("TessVertex",ngl::ShaderType::VERTEX);
-  shader->attachShader("TessFragment",ngl::ShaderType::FRAGMENT);
-  shader->attachShader("TessGeom",ngl::ShaderType::GEOMETRY);
-  shader->attachShader("TessControl",ngl::ShaderType::TESSCONTROL);
-  shader->attachShader("TessEval",ngl::ShaderType::TESSEVAL);
+  ngl::ShaderLib::attachShader("TessVertex",ngl::ShaderType::VERTEX);
+  ngl::ShaderLib::attachShader("TessFragment",ngl::ShaderType::FRAGMENT);
+  ngl::ShaderLib::attachShader("TessGeom",ngl::ShaderType::GEOMETRY);
+  ngl::ShaderLib::attachShader("TessControl",ngl::ShaderType::TESSCONTROL);
+  ngl::ShaderLib::attachShader("TessEval",ngl::ShaderType::TESSEVAL);
   // attach the source
-  shader->loadShaderSource("TessVertex","shaders/tessvert.glsl");
-  shader->loadShaderSource("TessFragment","shaders/tessfrag.glsl");
-  shader->loadShaderSource("TessGeom","shaders/tessgeom.glsl");
-  shader->loadShaderSource("TessControl","shaders/tesscontrol.glsl");
-  shader->loadShaderSource("TessEval","shaders/tesseval.glsl");
+  ngl::ShaderLib::loadShaderSource("TessVertex","shaders/tessvert.glsl");
+  ngl::ShaderLib::loadShaderSource("TessFragment","shaders/tessfrag.glsl");
+  ngl::ShaderLib::loadShaderSource("TessGeom","shaders/tessgeom.glsl");
+  ngl::ShaderLib::loadShaderSource("TessControl","shaders/tesscontrol.glsl");
+  ngl::ShaderLib::loadShaderSource("TessEval","shaders/tesseval.glsl");
   // add them to the program
-  shader->attachShaderToProgram("Tess","TessVertex");
-  shader->attachShaderToProgram("Tess","TessFragment");
-  shader->attachShaderToProgram("Tess","TessGeom");
-  shader->attachShaderToProgram("Tess","TessEval");
-  shader->attachShaderToProgram("Tess","TessControl");
+  ngl::ShaderLib::attachShaderToProgram("Tess","TessVertex");
+  ngl::ShaderLib::attachShaderToProgram("Tess","TessFragment");
+  ngl::ShaderLib::attachShaderToProgram("Tess","TessGeom");
+  ngl::ShaderLib::attachShaderToProgram("Tess","TessEval");
+  ngl::ShaderLib::attachShaderToProgram("Tess","TessControl");
 
   // compile the shaders
-  shader->compileShader("TessVertex");
-  shader->compileShader("TessFragment");
-  shader->compileShader("TessGeom");
-  shader->compileShader("TessEval");
-  shader->compileShader("TessControl");
+  ngl::ShaderLib::compileShader("TessVertex");
+  ngl::ShaderLib::compileShader("TessFragment");
+  ngl::ShaderLib::compileShader("TessGeom");
+  ngl::ShaderLib::compileShader("TessEval");
+  ngl::ShaderLib::compileShader("TessControl");
 
   // now we have associated this data we can link the shader
-  shader->linkProgramObject("Tess");
-  shader->use("Tess");
-  shader->autoRegisterUniforms("Tess");
-  shader->printRegisteredUniforms("Tess");
-  shader->setUniform("AmbientMaterial",0.1f, 0.1f, 0.1f);
-  shader->setUniform("DiffuseMaterial",0.8f, 0.0f, 0.0f);
-  shader->setUniform("LightPosition",1.0f,1.0f, 1.0f);
+  ngl::ShaderLib::linkProgramObject("Tess");
+  ngl::ShaderLib::use("Tess");
+  ngl::ShaderLib::autoRegisterUniforms("Tess");
+  ngl::ShaderLib::printRegisteredUniforms("Tess");
+  ngl::ShaderLib::setUniform("AmbientMaterial",0.1f, 0.1f, 0.1f);
+  ngl::ShaderLib::setUniform("DiffuseMaterial",0.8f, 0.0f, 0.0f);
+  ngl::ShaderLib::setUniform("LightPosition",1.0f,1.0f, 1.0f);
   //glPatchParameteri(GL_PATCH_VERTICES, 16);
   createIcosahedron();
   m_innerLevel=1.0;
@@ -118,8 +111,6 @@ void NGLScene::initializeGL()
 
 void NGLScene::loadMatricesToShader()
 {
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
   ngl::Mat4 MV;
   ngl::Mat4 MVP;
   ngl::Mat3 normalMatrix;
@@ -129,10 +120,10 @@ void NGLScene::loadMatricesToShader()
   MVP= m_project*MV;
   normalMatrix=MV;
   normalMatrix.inverse().transpose();
-  shader->setUniform("MVP",MVP);
-  shader->setUniform("TessLevelInner",m_innerLevel);
-  shader->setUniform("TessLevelOuter",m_outerLevel);
-  shader->setUniform("NormalMatrix",normalMatrix);
+  ngl::ShaderLib::setUniform("MVP",MVP);
+  ngl::ShaderLib::setUniform("TessLevelInner",m_innerLevel);
+  ngl::ShaderLib::setUniform("TessLevelOuter",m_outerLevel);
+  ngl::ShaderLib::setUniform("NormalMatrix",normalMatrix);
 }
 
 void NGLScene::paintGL()
@@ -141,8 +132,7 @@ void NGLScene::paintGL()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0,0,m_width,m_height);
   // grab an instance of the shader manager
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  (*shader)["Tess"]->use();
+  ngl::ShaderLib::use("Tess");
 
   ngl::Mat4 rotX;
   ngl::Mat4 rotY;
@@ -162,10 +152,8 @@ void NGLScene::paintGL()
   m_vao->unbind();
 
   m_text->setColour(1.0f,1.0f,1.0f);
-  QString text=QString("1 2 change inner tesselation level  current value %1").arg(m_innerLevel);
-  m_text->renderText(10,18,text);
-  text=QString("3 4 change outer tesselation level  current value %1").arg(m_outerLevel);
-  m_text->renderText(10,34,text);
+  m_text->renderText(10,700,fmt::format("1 2 change inner tesselation level  current value {}",m_innerLevel));
+  m_text->renderText(10,680,fmt::format("3 4 change outer tesselation level  current value {}",m_outerLevel));
 }
 
 
